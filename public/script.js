@@ -154,6 +154,7 @@ function runCode() {
   statusLabel.style.color = 'var(--yellow)';
   footerStatus.textContent = '编译中...';
   outputArea.innerHTML = '<span class="output-placeholder">⏳ 正在编译和运行代码...</span>';
+  clearErrorMarks();  // 清除之前的错误标记
 
   const stdin = stdinInput.value;
 
@@ -168,6 +169,17 @@ function runCode() {
     footerTime.textContent = `运行时间: ${elapsed}s`;
 
     if (data.error) {
+      // 解析 g++ 错误并标记在编辑器中
+      const errors = parseGccErrors(data.error);
+      if (errors.length > 0) {
+        markErrors(errors);
+        // 跳转到第一个错误
+        editor.setSelection(
+          { line: errors[0].line, ch: errors[0].ch },
+          { line: errors[0].line, ch: errors[0].ch + 1 }
+        );
+        editor.focus();
+      }
       // 编译错误
       if (data.error.includes('error:') || data.error.includes('undefined') || data.error.includes('syntax')) {
         setOutput(data.output, data.error, 'compile-error');
@@ -176,7 +188,7 @@ function runCode() {
       }
       statusLabel.textContent = '❌ 运行出错';
       statusLabel.style.color = 'var(--red)';
-      footerStatus.textContent = '运行出错';
+      footerStatus.textContent = `发现 ${errors.length} 处错误`;
     } else {
       setOutput(data.output, '', 'success');
       statusLabel.textContent = '✅ 运行成功';
@@ -218,6 +230,51 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// ===== 解析 g++ 错误信息，提取行号 =====
+function parseGccErrors(errorText) {
+  // g++ 错误格式: main.cpp:5:13: error: ...
+  const regex = /main\.cpp:(\d+):(\d+):\s*(error|warning|note):\s*(.+)/g;
+  const errors = [];
+  let match;
+  while ((match = regex.exec(errorText)) !== null) {
+    errors.push({
+      line: parseInt(match[1]) - 1,  // 0-indexed
+      ch: parseInt(match[2]) - 1,
+      severity: match[3],
+      message: match[4].trim()
+    });
+  }
+  return errors;
+}
+
+// 在编辑器中标记错误位置（红色波浪线）
+function markErrors(errors) {
+  if (window._errorMarks) {
+    window._errorMarks.forEach(m => m.clear());
+  }
+  window._errorMarks = [];
+  errors.forEach(err => {
+    if (err.line >= 0 && err.line < editor.lineCount()) {
+      const lineLen = editor.getLine(err.line).length;
+      const from = { line: err.line, ch: Math.max(0, err.ch) };
+      const to = { line: err.line, ch: Math.min(lineLen, err.ch + 1) };
+      const marker = editor.markText(from, to, {
+        className: 'error-mark',
+        title: err.severity + ': ' + err.message
+      });
+      window._errorMarks.push(marker);
+    }
+  });
+}
+
+// 清除所有错误标记
+function clearErrorMarks() {
+  if (window._errorMarks) {
+    window._errorMarks.forEach(m => m.clear());
+    window._errorMarks = [];
+  }
 }
 
 // ===== stdin 输入框：Enter 直接运行代码 =====

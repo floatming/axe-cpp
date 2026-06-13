@@ -287,6 +287,17 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinning { animation: spin 1s linear infinite; display: inline-block; }
 
+/* ===== 报错红线（波浪线） ===== */
+.CodeMirror .error-mark {
+  background: rgba(243, 139, 168, 0.15);
+  border-bottom: 2px wavy #f38ba8;
+  cursor: help;
+  transition: background 0.2s;
+}
+.CodeMirror .error-mark:hover {
+  background: rgba(243, 139, 168, 0.3);
+}
+
 /* ===== 响应式 ===== */
 @media (max-width: 900px) {
   .main-container { flex-direction: column; }
