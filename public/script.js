@@ -1,3 +1,59 @@
+// ===== C++ 关键字和常用补全列表 =====
+const cppHints = [
+  // 关键字
+  'alignas', 'alignof', 'and', 'and_eq', 'asm', 'atomic_cancel', 'atomic_commit',
+  'atomic_noexcept', 'auto', 'bitand', 'bitor', 'bool', 'break', 'case', 'catch',
+  'char', 'char8_t', 'char16_t', 'char32_t', 'class', 'compl', 'concept', 'const',
+  'consteval', 'constexpr', 'constinit', 'const_cast', 'continue', 'co_await',
+  'co_return', 'co_yield', 'decltype', 'default', 'delete', 'do', 'double',
+  'dynamic_cast', 'else', 'enum', 'explicit', 'export', 'extern', 'false', 'float',
+  'for', 'friend', 'goto', 'if', 'inline', 'int', 'long', 'mutable', 'namespace',
+  'new', 'noexcept', 'not', 'not_eq', 'nullptr', 'operator', 'or', 'or_eq',
+  'private', 'protected', 'public', 'reflexpr', 'register', 'reinterpret_cast',
+  'requires', 'return', 'short', 'signed', 'sizeof', 'static', 'static_assert',
+  'static_cast', 'struct', 'switch', 'synchronized', 'template', 'this', 'thread_local',
+  'throw', 'true', 'try', 'typedef', 'typeid', 'typename', 'union', 'unsigned',
+  'using', 'virtual', 'void', 'volatile', 'wchar_t', 'while', 'xor', 'xor_eq',
+
+  // 标准库
+  'std', 'cout', 'cin', 'cerr', 'clog', 'endl', 'flush', 'string', 'vector',
+  'map', 'set', 'unordered_map', 'unordered_set', 'array', 'list', 'deque',
+  'stack', 'queue', 'priority_queue', 'pair', 'tuple', 'optional', 'variant',
+  'any', 'string_view', 'iostream', 'fstream', 'sstream', 'iomanip',
+  'algorithm', 'numeric', 'cmath', 'cstdlib', 'ctime', 'cstring',
+  'thread', 'mutex', 'condition_variable', 'future', 'promise',
+  'shared_ptr', 'unique_ptr', 'weak_ptr', 'make_shared', 'make_unique',
+  'sort', 'reverse', 'find', 'count', 'lower_bound', 'upper_bound',
+  'max', 'min', 'swap', 'abs', 'pow', 'sqrt', 'ceil', 'floor',
+  'size', 'empty', 'push_back', 'pop_back', 'push', 'pop',
+  'begin', 'end', 'insert', 'erase', 'clear', 'resize',
+  'first', 'second', 'get', 'set', 'reset',
+  'int main()', 'return 0', 'using namespace std'
+];
+
+// 自定义 C++ 补全函数
+function cppHint(editor) {
+  const cursor = editor.getCursor();
+  const line = editor.getLine(cursor.line);
+  const start = cursor.ch;
+  let end = start;
+  while (end < line.length && /[\w.]/.test(line.charAt(end))) ++end;
+  let ch = start;
+  while (ch >= 0 && /[\w.]/.test(line.charAt(ch))) --ch;
+  const word = line.slice(ch + 1, end);
+  const results = [];
+  for (let i = 0; i < cppHints.length; i++) {
+    if (cppHints[i].indexOf(word) === 0) {
+      results.push(cppHints[i]);
+    }
+  }
+  return {
+    list: results.length ? results : cppHints,
+    from: CodeMirror.Pos(cursor.line, ch + 1),
+    to: CodeMirror.Pos(cursor.line, end)
+  };
+}
+
 // ===== CodeMirror 编辑器初始化 =====
 const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
   mode: 'text/x-c++src',
@@ -13,7 +69,10 @@ const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
   extraKeys: {
     'Ctrl-Enter': runCode,
     'Cmd-Enter': runCode,
-  }
+    'Ctrl-Space': showHint,
+    'Cmd-Space': showHint,
+  },
+  hintOptions: { hint: cppHint }
 });
 
 // 默认代码示例
@@ -33,6 +92,31 @@ int main() {
 }`;
 
 editor.setValue(defaultCode);
+
+// ===== 代码补全功能 =====
+// 手动触发补全 (Ctrl+Space / Cmd+Space)
+function showHint() {
+  editor.showHint({ hint: cppHint });
+}
+
+// 输入时自动触发补全（输入2个字符后）
+let hintTimeout = null;
+editor.on('inputRead', function() {
+  clearTimeout(hintTimeout);
+  hintTimeout = setTimeout(() => {
+    const cursor = editor.getCursor();
+    const line = editor.getLine(cursor.line);
+    const ch = cursor.ch;
+    // 获取当前单词
+    let start = ch;
+    while (start > 0 && /[a-zA-Z0-9_]/.test(line[start - 1])) start--;
+    const word = line.slice(start, ch);
+    // 输入2个字符后自动触发补全
+    if (word.length >= 2) {
+      editor.showHint({ hint: cppHint, completeSingle: false });
+    }
+  }, 300);
+});
 
 // ===== DOM 元素 =====
 const btnRun = document.getElementById('btn-run');
