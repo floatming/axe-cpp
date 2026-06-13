@@ -63,17 +63,12 @@ async function compileAndRun(req, res) {
     if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
     fs.writeFileSync(srcFile, code);
 
-    // 编译
+    // 编译（2>&1 把 stderr 合并到 stdout，所以从 stdout 读错误信息）
     const compileCmd = `g++ -std=c++17 -O2 -o "${outFile}" "${srcFile}" 2>&1`;
-    exec(compileCmd, { timeout: 10000 }, (compileErr, _out, compileStderr) => {
-      const compileError = compileErr ? (compileStderr || compileErr.message) : '';
-
-      if (compileError) {
-        try { fs.unlinkSync(srcFile); } catch {}
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ output: '', error: compileError }));
-        return;
-      }
+    exec(compileCmd, { timeout: 10000 }, (compileErr, compileStdout) => {
+      // 编译失败时，错误信息在 compileStdout 里（因为 2>&1）
+      if (compileErr) {
+        const compileError = (compileStdout && compileStdout.trim()) || compileErr.message;\n        try { fs.unlinkSync(srcFile); } catch {}\n        res.writeHead(200, { 'Content-Type': 'application/json' });\n        res.end(JSON.stringify({ output: '', error: compileError }));\n        return;\n      }
 
       // 运行（超时5秒）
       const runCmd = `"${outFile}"`;

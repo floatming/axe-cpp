@@ -173,24 +173,21 @@ function runCode() {
       const errors = parseGccErrors(data.error);
       if (errors.length > 0) {
         markErrors(errors);
-        // 跳转到第一个错误
+        // 跳转到第一个错误并高亮该行
         editor.setSelection(
-          { line: errors[0].line, ch: errors[0].ch },
-          { line: errors[0].line, ch: errors[0].ch + 1 }
+          { line: errors[0].line, ch: 0 },
+          { line: errors[0].line, ch: editor.getLine(errors[0].line).length }
         );
         editor.focus();
       }
       // 编译错误
-      if (data.error.includes('error:') || data.error.includes('undefined') || data.error.includes('syntax')) {
-        setOutput(data.output, data.error, 'compile-error');
-      } else {
-        setOutput(data.output, data.error, 'error');
-      }
+      setOutput(data.output, data.error, errors.length > 0 ? 'compile-error' : 'error');
       statusLabel.textContent = '❌ 运行出错';
       statusLabel.style.color = 'var(--red)';
       footerStatus.textContent = `发现 ${errors.length} 处错误`;
     } else {
       setOutput(data.output, '', 'success');
+      clearErrorMarks();
       statusLabel.textContent = '✅ 运行成功';
       statusLabel.style.color = 'var(--green)';
       footerStatus.textContent = `运行成功 (${elapsed}s)`;
