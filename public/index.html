@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AXE</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- CodeMirror 编辑器 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+</head>
+<body>
+  <div class="app">
+    <!-- 顶部标题栏 -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🏔️</span>
+        <h1>AXE的C++</h1>
+      </div>
+      <div class="header-actions">
+        <button id="btn-theme" class="btn-icon" title="切换主题">🌙</button>
+        <button id="btn-font-dec" class="btn-icon" title="减小字体">A-</button>
+        <button id="btn-font-inc" class="btn-icon" title="增大字体">A+</button>
+      </div>
+    </header>
+
+    <div class="main-container">
+      <!-- 左侧：代码编辑区 -->
+      <div class="editor-panel">
+        <div class="panel-header">
+          <span class="panel-title">📝 main.cpp</span>
+          <div class="panel-actions">
+            <button id="btn-example" class="btn-sm">示例代码</button>
+            <button id="btn-clear" class="btn-sm">清空</button>
+          </div>
+        </div>
+        <div class="editor-wrapper">
+          <textarea id="code-editor"></textarea>
+        </div>
+        <div class="action-bar">
+          <button id="btn-run" class="btn-run">
+            <span class="run-icon">▶</span> 运行代码
+          </button>
+          <button id="btn-stop" class="btn-stop" style="display:none;">
+            <span class="stop-icon">■</span> 停止
+          </button>
+          <span id="status-label" class="status-label"></span>
+        </div>
+      </div>
+
+      <!-- 右侧：输入/输出区 -->
+      <div class="io-panel">
+        <!-- 标准输入 -->
+        <div class="io-section">
+          <div class="panel-header">
+            <span class="panel-title">📥 标准输入 (stdin)</span>
+          </div>
+          <textarea id="stdin-input" class="io-textarea" placeholder="在这里输入程序运行所需的输入..."></textarea>
+        </div>
+
+        <!-- 标准输出 -->
+        <div class="io-section">
+          <div class="panel-header">
+            <span class="panel-title">📤 输出结果</span>
+            <button id="btn-clear-output" class="btn-sm">清空输出</button>
+          </div>
+          <div id="output-area" class="output-area">
+            <div class="output-placeholder">点击「运行代码」查看输出结果...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部状态栏 -->
+    <footer class="footer">
+      <span id="footer-status">就绪</span>
+      <span>|</span>
+      <span>C++17 | g++ (Apple Clang)</span>
+      <span>|</span>
+      <span id="footer-time">运行时间: --</span>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
