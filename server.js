@@ -68,7 +68,12 @@ async function compileAndRun(req, res) {
     exec(compileCmd, { timeout: 10000 }, (compileErr, compileStdout) => {
       // 编译失败时，错误信息在 compileStdout 里（因为 2>&1）
       if (compileErr) {
-        const compileError = (compileStdout && compileStdout.trim()) || compileErr.message;\n        try { fs.unlinkSync(srcFile); } catch {}\n        res.writeHead(200, { 'Content-Type': 'application/json' });\n        res.end(JSON.stringify({ output: '', error: compileError }));\n        return;\n      }
+        const compileError = (compileStdout && compileStdout.trim()) || compileErr.message;
+        try { fs.unlinkSync(srcFile); } catch {}
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ output: '', error: compileError }));
+        return;
+      }
 
       // 运行（超时5秒）
       const runCmd = `"${outFile}"`;
@@ -127,9 +132,11 @@ const server = http.createServer((req, res) => {
 function startServer(port) {
   server.listen(port, () => {
     const url = `http://axe.local${port === 80 ? '' : ':' + port}`;
-    console.log(`\n✅ AXE的C++ 编译器已启动！`);
+    console.log(`
+✅ AXE的C++ 编译器已启动！`);
     console.log(`   本机访问: ${url}`);
-    console.log(`   按 Ctrl+C 停止服务器\n`);
+    console.log(`   按 Ctrl+C 停止服务器
+`);
   });
 
   server.on('error', (err) => {
